@@ -27,3 +27,5 @@ langchain_groq
 langchain_community 
 beautifulsoup4
 cassandra-driver
+langchain-google-genai
+accelerate

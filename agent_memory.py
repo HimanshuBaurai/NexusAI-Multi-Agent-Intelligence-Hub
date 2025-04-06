@@ -1,3 +1,5 @@
+
+# I will try now using langchain for the same purpose, as i dont know why using agno with local as well as cloud dbs is not working properly. when deployed
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_astradb import AstraDBVectorStore
 import cassio
@@ -13,10 +15,16 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain_google_genai import ChatGoogleGenerativeAI
+load_dotenv()
 
 os.environ['ASTRA_DB_APPLICATION_TOKEN'] = os.getenv(
     'ASTRA_DB_APPLICATION_TOKEN')
 os.environ['ASTRA_DB_API_ENDPOINT'] = os.getenv('ASTRA_DB_API_ENDPOINT')
+# os.environ['GOOGLE_API_KEY'] = os.getenv('GOOGLE_API_KEY')
+
+# google_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-001")
+# google_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite-001")
 
 
 embedding = HuggingFaceEmbeddings(
@@ -106,9 +114,10 @@ def pdfs_docs_insert_to_db(pdf_dir: Path):
 
 
 groq_api_key = os.getenv("GROQ_API_KEY")
+# llm = google_model
 llm = ChatGroq(
     api_key=groq_api_key,  # it can also read my default if in env its named GROQ_API_KEY
-    model='llama-3.1-8b-instant'
+    model='gemma2-9b-it'
 )
 print("Groq model configured")
 

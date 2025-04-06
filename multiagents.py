@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 def initialize_agents():
     load_dotenv()
     os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
-    
+
     web_agent = Agent(
         name="Web Agent",
         role="Search the web for information",
@@ -37,8 +37,10 @@ def initialize_agents():
     finance_agent = Agent(
         name="Financial Data Analyst",
         role="Analyze financial data, metrics, stock performance, and company fundamentals",
-        model=Groq(id="mistral-saba-24b"),
-        tools=[YFinanceTools(stock_price=True, analyst_recommendations=True, stock_fundamentals=True, company_info=True)],
+        # model=Groq(id="mistral-saba-24b"),
+        model=Groq(id="llama-3.3-70b-versatile"),
+        tools=[YFinanceTools(stock_price=True, analyst_recommendations=True,
+                             stock_fundamentals=True, company_info=True)],
         instructions=[
             "Present financial data in well-formatted tables with clear headers",
             "Double-check all numerical data before presenting it",
@@ -130,7 +132,8 @@ def initialize_agents():
     generic_agent = Agent(
         name="General Query Agent",
         role="Answer general queries and provide information",
-        model=Groq(id="deepseek-r1-distill-llama-70b"),
+        # model=Groq(id="deepseek-r1-distill-llama-70b"),
+        model=Groq(id="llama-3.3-70b-versatile"),
         instructions=[
             "Provide clear and concise answers to general queries",
             "Use bullet points for lists and structured information",
@@ -145,7 +148,9 @@ def initialize_agents():
         name="Multi-Agent Team",
         mode="route",
         model=Groq(id="deepseek-r1-distill-llama-70b"),
-        members=[web_agent, finance_agent, research_agent, math_agent, wiki_agent, news_agent, youtube_agent, generic_agent],
+        # model=Groq(id="llama-3.3-70b-versatile"),
+        members=[web_agent, finance_agent, research_agent, math_agent,
+                 wiki_agent, news_agent, youtube_agent, generic_agent],
         show_tool_calls=True,
         markdown=True,
         description="You are a query-based router that directs questions to the most appropriate specialized agent.",
@@ -164,11 +169,12 @@ def initialize_agents():
         ],
         show_members_responses=True,
     )
-    
+
     return agent_team
 
 
 agent_team_combined_model = initialize_agents()
+
 
 def process_query(query):
     response: RunResponse = agent_team_combined_model.run(query)
