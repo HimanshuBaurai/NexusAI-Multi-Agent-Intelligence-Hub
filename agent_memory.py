@@ -41,23 +41,23 @@ embedding = HuggingFaceEmbeddings(
 #     model_kwargs={'device': 'cpu', 'normalize_embeddings': True},
 # )
 
-from langchain_chroma import Chroma
-VSTORE_DIR = Path(__file__).parent / "data" / "chroma"
-VSTORE_DIR.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
-vstore = Chroma(
-    collection_name="nexusaiagnolanggraphwithhistory",
-    embedding_function=embedding,
-    persist_directory=VSTORE_DIR.__str__(),
-)
-print("Chroma vector store configured")
-
-# vstore = AstraDBVectorStore(
-#     collection_name="nexusaiagnolangchain",
-#     embedding=embedding,
-#     token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"),
-#     api_endpoint=os.getenv("ASTRA_DB_API_ENDPOINT"),
+# from langchain_chroma import Chroma
+# VSTORE_DIR = Path(__file__).parent / "data" / "chroma"
+# VSTORE_DIR.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+# vstore = Chroma(
+#     collection_name="nexusaiagnolanggraphwithhistory",
+#     embedding_function=embedding,
+#     persist_directory=VSTORE_DIR.__str__(),
 # )
-# print("Astra vector store configured")
+# print("Chroma vector store configured")
+
+vstore = AstraDBVectorStore(
+    collection_name="nexusaiagnolangchain",
+    embedding=embedding,
+    token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"),
+    api_endpoint=os.getenv("ASTRA_DB_API_ENDPOINT"),
+)
+print("Astra vector store configured")
 
 
 def vstore_delete_all_docs():
@@ -65,8 +65,8 @@ def vstore_delete_all_docs():
     Delete the existing vector store and recreate it.
     """
     global vstore  # Add this line to modify the global variable
-    # vstore.clear() # This method is not available in Chroma, its for AstraDBVectorStore
-    vstore.reset_collection() # for chroma
+    vstore.clear() # This method is not available in Chroma, its for AstraDBVectorStore
+    # vstore.reset_collection() # for chroma
     print("All documents deleted from the vector store.")
 
 
