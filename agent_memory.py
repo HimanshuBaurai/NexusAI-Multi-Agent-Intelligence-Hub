@@ -27,27 +27,37 @@ os.environ['ASTRA_DB_API_ENDPOINT'] = os.getenv('ASTRA_DB_API_ENDPOINT')
 # google_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite-001")
 
 
-# embedding = HuggingFaceEmbeddings(
-#     model_name="sentence-transformers/all-MiniLM-L6-v2",
-#     model_kwargs={'device': 'cpu'},
-#     encode_kwargs={'normalize_embeddings': True}
+embedding = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': True}
+)
+# HF_TOKEN=os.getenv("HUGGINGFACEHUB_API_TOKEN")
+# from langchain_huggingface import HuggingFaceEndpointEmbeddings
+# embedding = HuggingFaceEndpointEmbeddings(
+#     model="sentence-transformers/all-MiniLM-L6-v2",
+#     task="feature-extraction",
+#     huggingfacehub_api_token=HF_TOKEN,
+#     model_kwargs={'device': 'cpu', 'normalize_embeddings': True},
 # )
-HF_TOKEN=os.getenv("HUGGINGFACEHUB_API_TOKEN")
-from langchain_huggingface import HuggingFaceEndpointEmbeddings
-embedding = HuggingFaceEndpointEmbeddings(
-    model="sentence-transformers/all-MiniLM-L6-v2",
-    task="feature-extraction",
-    huggingfacehub_api_token=HF_TOKEN,
-    model_kwargs={'device': 'cpu', 'normalize_embeddings': True},
-)
 
-vstore = AstraDBVectorStore(
-    collection_name="nexusaiagnolangchain",
-    embedding=embedding,
-    token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"),
-    api_endpoint=os.getenv("ASTRA_DB_API_ENDPOINT"),
+from langchain_chroma import Chroma
+VSTORE_DIR = Path(__file__).parent / "data" / "chroma"
+VSTORE_DIR.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+vstore = Chroma(
+    collection_name="nexusaiagnolanggraphwithhistory",
+    embedding_function=embedding,
+    persist_directory=VSTORE_DIR.__str__(),
 )
-print("Astra vector store configured")
+print("Chroma vector store configured")
+
+# vstore = AstraDBVectorStore(
+#     collection_name="nexusaiagnolangchain",
+#     embedding=embedding,
+#     token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"),
+#     api_endpoint=os.getenv("ASTRA_DB_API_ENDPOINT"),
+# )
+# print("Astra vector store configured")
 
 
 def vstore_delete_all_docs():
@@ -55,7 +65,8 @@ def vstore_delete_all_docs():
     Delete the existing vector store and recreate it.
     """
     global vstore  # Add this line to modify the global variable
-    vstore.clear()
+    # vstore.clear() # This method is not available in Chroma, its for AstraDBVectorStore
+    vstore.reset_collection() # for chroma
     print("All documents deleted from the vector store.")
 
 
@@ -130,7 +141,7 @@ llm = ChatGroq(
 print("Groq model configured")
 
 
-retriever = vstore.as_retriever(search_kwargs={"k": 3})
+retriever = vstore.as_retriever(search_type="mmr", search_kwargs={"k": 3})
 prompt_template = """
 Answer the question based only on the supplied context. If you don't know the answer, say you don't know the answer.
 Context: {context}
