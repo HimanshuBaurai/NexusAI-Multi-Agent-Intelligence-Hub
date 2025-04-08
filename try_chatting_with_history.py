@@ -23,10 +23,18 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from dotenv import load_dotenv
 load_dotenv()
 
-embedding = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    model_kwargs={'device': 'cpu'},
-    encode_kwargs={'normalize_embeddings': True}
+# embedding = HuggingFaceEmbeddings(
+#     model_name="sentence-transformers/all-MiniLM-L6-v2",
+#     model_kwargs={'device': 'cpu'},
+#     encode_kwargs={'normalize_embeddings': True}
+# )
+HF_TOKEN=os.getenv("HUGGINGFACEHUB_API_TOKEN")
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+embedding = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    task="feature-extraction",
+    huggingfacehub_api_token=HF_TOKEN,
+    model_kwargs={'device': 'cpu', 'normalize_embeddings': True},
 )
 
 vstore = AstraDBVectorStore(

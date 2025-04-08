@@ -27,10 +27,18 @@ os.environ['ASTRA_DB_API_ENDPOINT'] = os.getenv('ASTRA_DB_API_ENDPOINT')
 # google_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite-001")
 
 
-embedding = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    model_kwargs={'device': 'cpu'},
-    encode_kwargs={'normalize_embeddings': True}
+# embedding = HuggingFaceEmbeddings(
+#     model_name="sentence-transformers/all-MiniLM-L6-v2",
+#     model_kwargs={'device': 'cpu'},
+#     encode_kwargs={'normalize_embeddings': True}
+# )
+HF_TOKEN=os.getenv("HUGGINGFACEHUB_API_TOKEN")
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+embedding = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    task="feature-extraction",
+    huggingfacehub_api_token=HF_TOKEN,
+    model_kwargs={'device': 'cpu', 'normalize_embeddings': True},
 )
 
 vstore = AstraDBVectorStore(
