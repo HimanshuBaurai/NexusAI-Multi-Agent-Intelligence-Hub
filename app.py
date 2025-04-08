@@ -431,11 +431,6 @@
 #     st.markdown('</div>', unsafe_allow_html=True)
 
 
-import time
-import multiagents
-from try_chatting_with_history import vstore_delete_all_docs_with_history, urls_docs_insert_to_db_with_history, pdfs_docs_insert_to_db_with_history, process_rag_query_with_memory
-from agent_memory import urls_docs_insert_to_db, pdfs_docs_insert_to_db, process_rag_query, vstore_delete_all_docs
-from pathlib import Path
 import streamlit as st
 # Set page configuration
 st.set_page_config(
@@ -444,6 +439,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+import time
+import multiagents
+from try_chatting_with_history import vstore_delete_all_docs_with_history, urls_docs_insert_to_db_with_history, pdfs_docs_insert_to_db_with_history, process_rag_query_with_memory
+from agent_memory import urls_docs_insert_to_db, pdfs_docs_insert_to_db, process_rag_query, vstore_delete_all_docs
+from pathlib import Path
 
 # Initialize knowledge base on app refresh
 if 'initialized' not in st.session_state:
