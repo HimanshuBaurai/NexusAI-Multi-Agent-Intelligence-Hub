@@ -30,3 +30,4 @@ cassandra-driver
 langchain-google-genai
 accelerate
 langgraph
+huggingface_hub[hf_xet]
