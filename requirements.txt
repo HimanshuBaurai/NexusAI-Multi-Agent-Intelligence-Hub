@@ -29,3 +29,4 @@ beautifulsoup4
 cassandra-driver
 langchain-google-genai
 accelerate
+langgraph

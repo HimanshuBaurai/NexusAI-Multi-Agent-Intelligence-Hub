@@ -1,3 +1,8 @@
+import time
+import multiagents
+from try_chatting_with_history import vstore_delete_all_docs_with_history, urls_docs_insert_to_db_with_history, pdfs_docs_insert_to_db_with_history, process_rag_query_with_memory
+from agent_memory import urls_docs_insert_to_db, pdfs_docs_insert_to_db, process_rag_query, vstore_delete_all_docs
+from pathlib import Path
 import streamlit as st
 # Set page configuration
 st.set_page_config(
@@ -6,15 +11,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-from pathlib import Path
-from agent_memory import urls_docs_insert_to_db, pdfs_docs_insert_to_db, process_rag_query, vstore_delete_all_docs
-import multiagents
-import time
 
 # Initialize knowledge base on app refresh
 if 'initialized' not in st.session_state:
     # This will only run once when the app first loads or is refreshed
     vstore_delete_all_docs()
+    vstore_delete_all_docs_with_history()
+    # if chat history from prev session exists, clear it
+    if "chat_history" in st.session_state:
+        st.session_state.chat_history = []
     st.session_state.initialized = True
 
 
@@ -50,6 +55,8 @@ st.markdown('<div class="main-header">NexusAI: Multi-Agent Intelligence Hub</div
             unsafe_allow_html=True)
 
 # Helper functions for processing different query types
+
+
 def process_query(query, button_clicked):
     if button_clicked and query:
         with st.spinner("Processing your query..."):
@@ -70,8 +77,9 @@ def process_financial_query(query, button_clicked):
         with st.spinner("Analyzing financial data..."):
             try:
                 full_query = f"Use financial tool to answer the query: {query}"
+                response_placeholder = st.empty()
                 response = multiagents.process_query(full_query)
-                st.markdown(response)
+                response_placeholder.markdown(response)
             except Exception as e:
                 st.error(f"Error: {e}")
                 time.sleep(4)
@@ -156,13 +164,14 @@ with st.sidebar:
     - 📖 Wikipedia article summaries
     - 📰 News article analysis
     - 🎥 YouTube video summaries
-    - 🧠 RAG knowledge base for document processing and queries
+    - 🧠 RAG knowledge base for document processing and queries via Langchain
+    - 🧠 Advanced RAG with memory track for greater context via Langgraph
     """)
 
     st.markdown("---")
     st.caption(
         "NexusAI uses Agno's multi-agent framework to provide intelligent responses across multiple domains.")
-    
+
 # Main content area
 tab_options = [
     "General Query",
@@ -172,18 +181,21 @@ tab_options = [
     "Wikipedia Search",
     "News Article Summary",
     "YouTube Video Summary",
-    "RAG Knowledge Base"
+    "RAG Knowledge Base",
+    "Advanced RAG with Memory"
 ]
 
 selected_tab = st.selectbox("Select functionality:", tab_options)
 
 # Function to create a card container
+
+
 def create_card(title, content):
     st.markdown(
         f'<div class="sub-header">{title}</div>', unsafe_allow_html=True)
     # st.markdown('<div class="card">', unsafe_allow_html=True)
     content()
-    st.markdown('</div>', unsafe_allow_html=True)
+    # st.markdown('</div>', unsafe_allow_html=True)
 
 
 # Display different UI based on selected tab
@@ -297,7 +309,123 @@ elif selected_tab == "RAG Knowledge Base":
     if upload_button:
         pdfs_docs_insert_to_db(PDF_DIR)
     if query_button:
-        answer=process_rag_query(query)
+        answer = process_rag_query(query)
         st.markdown(answer)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+elif selected_tab == "Advanced RAG with Memory":
+    st.markdown('<div class="sub-header">Advanced RAG with Memory</div>',
+                unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    # Information about Advanced RAG with Memory
+    st.markdown("""
+    This Advanced RAG system maintains conversation history for more contextual responses.
+    It uses LangGraph to:
+    - Rewrite questions based on conversation context
+    - Evaluate document relevance
+    - Refine searches when needed
+    - Provide direct answers when no relevant documents exist
+    """)
+
+    # Add Clear Memory button at the top of the Advanced RAG section
+    clear_memory_button = st.button("Clear Advanced RAG Memory")
+    if clear_memory_button:
+        with st.spinner("Clearing advanced knowledge base..."):
+            vstore_delete_all_docs_with_history()
+            st.success(
+                "Advanced RAG knowledge base has been reset successfully!")
+
+    st.markdown(
+        "Upload documents or provide URLs to build your knowledge base with memory support.")
+    st.markdown('<p class="info-text">Note: This system maintains conversation history for contextual responses.</p>',
+                unsafe_allow_html=True)
+
+    st.subheader("Add Web Pages or PDF URLs")
+    urls = st.text_area("Enter URLs (one per line):",
+                        height=100, key="urls_memory")
+    add_urls_button = st.button("Add URLs to Memory-Enabled Knowledge Base")
+
+    st.subheader("Upload PDF Documents")
+    uploaded_files = st.file_uploader(
+        "Choose PDF files", accept_multiple_files=True, type="pdf", key="pdfs_memory")
+    upload_button = st.button("Upload Files to Memory-Enabled Knowledge Base")
+
+    # Chat history container
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    st.subheader("Query Your Memory-Enabled Knowledge Base")
+
+    # Display chat history with color styling and emojis
+    chat_container = st.container()
+    with chat_container:
+        for message in st.session_state.chat_history:
+            if message["role"] == "user":
+                st.markdown(
+                    f"""
+                    <div style="background-color: #E8F4FF; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                        <strong>👤 You:</strong> {message['content']}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    f"""
+                    <div style="background-color: #F0F0F0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                        <strong>🤖 AI:</strong> {message['content']}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+    # Query input
+    query = st.text_area("Enter your query:", height=100, key="query_memory")
+    query_button = st.button("Submit Query to Memory-Enabled System")
+
+    PDF_DIR = Path(__file__).parent / "data" / "history" / "pdfs"
+    PDF_DIR.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+    if upload_button and uploaded_files:
+        with st.spinner("Processing and uploading files..."):
+            for uploaded_file in uploaded_files:
+                # Save each file in the data/memory_pdfs directory
+                file_path = PDF_DIR / uploaded_file.name
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.read())
+            st.success(
+                f"{len(uploaded_files)} file(s) uploaded successfully to {PDF_DIR}")
+            # Add files to the memory-enabled vector store
+            pdfs_docs_insert_to_db_with_history(PDF_DIR)
+            st.success(
+                "Documents processed and added to memory-enabled knowledge base!")
+
+    if add_urls_button and urls:
+        with st.spinner("Processing URLs..."):
+            url_list = [url.strip() for url in urls.split('\n') if url.strip()]
+            if url_list:
+                urls_docs_insert_to_db_with_history(url_list)
+                st.success(
+                    f"{len(url_list)} URL(s) processed and added to memory-enabled knowledge base!")
+            else:
+                st.warning("No valid URLs provided.")
+
+    if query_button and query:
+        with st.spinner("Processing your query with contextual memory..."):
+            # Add user query to chat history
+            st.session_state.chat_history.append(
+                {"role": "user", "content": query})
+
+            # Process the query with the memory-enabled system
+            answer = process_rag_query_with_memory(query)
+
+            # Add AI response to chat history
+            st.session_state.chat_history.append(
+                {"role": "assistant", "content": answer})
+
+            # Force refresh to show updated chat history
+            st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
