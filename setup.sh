@@ -1,3 +1,15 @@
+#!/bin/bash
+
+# Install Rust using rustup
+echo "Installing Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Source the environment to add Rust to PATH
+source "$HOME/.cargo/env"
+echo "Rust installation complete. Version details:"
+rustc --version
+cargo --version
+
+# Configure Streamlit
 mkdir -p ~/.streamlit/
 
 echo "\

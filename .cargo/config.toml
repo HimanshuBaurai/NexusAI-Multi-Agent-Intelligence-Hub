@@ -1,7 +1,0 @@
-[build]
-# Skip linking step since we're only using this to provide Rust for Python packages
-rustc-wrapper = "true"
-
-[profile.release]
-opt-level = 0
-debug = false
