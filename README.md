@@ -315,6 +315,11 @@ To customize the RAG functionality, modify `agent_memory.py`:
    - Verify your network can reach the AstraDB endpoint
    - Confirm your application token has the correct permissions
 
+### Deployment on Heroku
+To deploy on Heroku, follow these steps in this video: [Heroku Deployment](https://www.youtube.com/watch?v=ZKy3Mass9_E)
+### Deployment on Streammlit cloud (easy and free, but shuts down after sometime)
+To deploy on Streamlit cloud, just go onto its website and create a new app. Then, link your GitHub repository and select the branch you want to deploy. Streamlit will automatically install the required packages and run the app.
+
 ### Logs
 
 For debugging purposes, the application provides logging information:
