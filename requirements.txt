@@ -33,3 +33,4 @@ langgraph
 huggingface_hub[hf_xet]
 chromadb
 langchain-chroma
+mcp
